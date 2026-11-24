@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#172b25">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MacroTrack">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>MacroTrack</title>
+<style>
+:root{--bg:#f3f6f2;--card:#fff;--ink:#172b25;--muted:#68766f;--line:#dce5dd;--green:#247653;--soft:#e8f2eb;--orange:#d78a36}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px -apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+main{max-width:760px;margin:auto;padding:18px 16px 40px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:8px 0 18px}.brand{font-size:24px;font-weight:800;letter-spacing:-.7px}.sub{color:var(--muted);font-size:13px}.date{font-size:14px;color:var(--muted);text-align:right}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:16px;margin:12px 0;box-shadow:0 2px 8px #19372908}
+.calrow{display:flex;justify-content:space-between;align-items:end;gap:10px}.big{font-size:34px;font-weight:800;letter-spacing:-1px}.goal{font-size:14px;color:var(--muted)}.bar{height:10px;border-radius:20px;background:#e8eee9;overflow:hidden;margin-top:12px}.bar>i{display:block;height:100%;background:var(--green);border-radius:20px;width:0}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.macro{background:var(--soft);border-radius:14px;padding:12px;min-width:0}.macro b{display:block;font-size:21px}.macro span{font-size:12px;color:var(--muted)}.macro .bar{height:6px;margin-top:9px;background:#d7e5da}
+h2{font-size:18px;margin:0 0 12px}.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}.field{margin-bottom:10px}label{display:block;font-size:13px;color:var(--muted);margin:0 0 5px}input,select{width:100%;min-height:46px;border:1px solid var(--line);border-radius:11px;padding:10px 12px;background:white;color:var(--ink);font-size:16px}button{border:0;border-radius:11px;min-height:44px;padding:10px 14px;font-size:15px;font-weight:700;cursor:pointer}.primary{background:var(--green);color:white;width:100%}.secondary{background:var(--soft);color:var(--ink)}.tiny{min-height:34px;padding:6px 10px;font-size:12px;background:#f0f3f0;color:var(--ink)}
+.mealhead{display:flex;justify-content:space-between;align-items:center;margin:0 0 7px}.food{display:flex;justify-content:space-between;gap:10px;padding:11px 0;border-top:1px solid var(--line)}.foodname{font-weight:650}.foodmeta{font-size:12px;color:var(--muted);margin-top:3px}.foodactions{display:flex;align-items:center;gap:5px}.empty{font-size:13px;color:var(--muted);padding:8px 0}.tabs{display:flex;gap:8px;margin:12px 0;flex-wrap:wrap}.tabs button{background:#e7eee8;color:var(--ink)}.tabs button.active{background:var(--ink);color:white}.section{display:none}.section.active{display:block}.notice{background:#fff7e9;border:1px solid #f1dfbd;border-radius:12px;padding:11px;font-size:13px;color:#72501e;margin:12px 0}.footer{font-size:12px;color:var(--muted);text-align:center;margin-top:20px}.hidden{display:none!important}
+@media(max-width:380px){.grid{gap:6px}.macro{padding:9px}.macro b{font-size:18px}.big{font-size:29px}}
+</style>
+</head>
+<body>
+<main>
+<header class="top"><div><div class="brand">🌿 MacroTrack</div><div class="sub">A simple daily food & macro tracker</div></div><div class="date" id="today"></div></header>
+<div class="tabs" role="tablist"><button class="active" data-tab="diary">Today</button><button data-tab="history">History</button><button data-tab="goals">Goals</button></div>
+<section id="diary" class="section active">
+<div class="card">
+ <div class="calrow"><div><div class="sub">CALORIES CONSUMED</div><div class="big"><span id="calNow">0</span> <span class="goal">/ <span id="calGoal">2000</span></span></div></div><div class="goal" id="calRemain">2,000 remaining</div></div>
+ <div class="bar"><i id="calBar"></i></div>
+</div>
+<div class="grid" id="macroTiles"></div>
+<div class="card">
+<h2>Add food</h2>
+<form id="foodForm">
+<div class="field"><label for="foodName">Food name</label><input id="foodName" maxlength="90" placeholder="e.g. Grilled chicken breast" required></div>
+<div class="field"><label for="meal">Meal</label><select id="meal"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snacks</option></select></div>
+<div class="row">
+<div class="field"><label for="cal">Calories</label><input id="cal" type="number" min="0" max="10000" step="1" required placeholder="250"></div>
+<div class="field"><label for="protein">Protein (g)</label><input id="protein" type="number" min="0" max="1000" step=".1" required placeholder="30"></div>
+<div class="field"><label for="carbs">Carbs (g)</label><input id="carbs" type="number" min="0" max="1000" step=".1" required placeholder="10"></div>
+<div class="field"><label for="fat">Fat (g)</label><input id="fat" type="number" min="0" max="1000" step=".1" required placeholder="8"></div>
+</div><button class="primary" type="submit">＋ Add to food diary</button>
+</form>
+</div>
+<div id="mealLists"></div>
+<div class="card"><h2>Favorites</h2><div id="favorites" class="empty">Save foods you eat often to add them again quickly.</div></div>
+</section>
+<section id="history" class="section"><div class="card"><h2>Daily history</h2><div class="sub">Your entries are saved on this device.</div><div id="historyList" style="margin-top:12px"></div></div></section>
+<section id="goals" class="section"><div class="card"><h2>Daily macro goals</h2><p class="sub">Starting targets are editable. Adjust them to fit your needs.</p>
+<div class="row"><div class="field"><label for="gcal">Calories</label><input id="gcal" type="number" min="1" max="10000"></div><div class="field"><label for="gp">Protein (g)</label><input id="gp" type="number" min="0" max="1000"></div><div class="field"><label for="gc">Carbs (g)</label><input id="gc" type="number" min="0" max="1000"></div><div class="field"><label for="gf">Fat (g)</label><input id="gf" type="number" min="0" max="1000"></div></div>
+<button class="primary" id="saveGoals">Save daily goals</button><div class="notice">Initial example targets: 2,000 calories, 150g protein, 200g carbs and 67g fat. These are editable starting values, not a medical nutrition prescription.</div>
+</div></section>
+<div class="footer">Your data stays in this browser on this device. Export a backup regularly.</div>
+<div class="row" style="margin-top:12px"><button class="secondary" id="exportBtn">Export backup</button><button class="secondary" id="importBtn">Import backup</button></div><input class="hidden" id="importFile" type="file" accept="application/json">
+</main>
+<script>
+const KEY='macrotrack-data-v1';
+const defaults={goals:{cal:2000,p:150,c:200,f:67},days:{},favorites:[]};
+let state=load();
+function load(){try{return {...defaults,...JSON.parse(localStorage.getItem(KEY)||'{}')}}catch(e){return structuredClone(defaults)}}
+function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+function dayKey(d=new Date()){return [d.getFullYear(),String(d.getMonth()+1).padStart(2,'0'),String(d.getDate()).padStart(2,'0')].join('-')}
+function todayFoods(){return state.days[dayKey()]||[]}
+function setTodayFoods(a){state.days[dayKey()]=a;save();render()}
+function n(v){return Number(v)||0}
+function sum(a,k){return a.reduce((s,x)=>s+n(x[k]),0)}
+function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function pct(a,b){return Math.max(0,Math.min(100,b?100*a/b:0))}
+function render(){
+ const a=todayFoods(),g=state.goals,t={cal:sum(a,'cal'),p:sum(a,'p'),c:sum(a,'c'),f:sum(a,'f')};
+ document.getElementById('calNow').textContent=Math.round(t.cal);document.getElementById('calGoal').textContent=g.cal.toLocaleString();document.getElementById('calRemain').textContent=Math.round(g.cal-t.cal).toLocaleString()+(g.cal>=t.cal?' remaining':' over goal');document.getElementById('calBar').style.width=pct(t.cal,g.cal)+'%';
+ document.getElementById('macroTiles').innerHTML=[['p','Protein'],['c','Carbs'],['f','Fat']].map(([k,label])=>`<div class="macro"><span>${label}</span><b>${t[k].toFixed(1).replace(/\\.0$/,'')}g</b><span>of ${g[k]}g</span><div class="bar"><i style="display:block;height:100%;width:${pct(t[k],g[k])}%;background:var(--green);border-radius:20px"></i></div></div>`).join('');
+ document.getElementById('mealLists').innerHTML=['Breakfast','Lunch','Dinner','Snacks'].map(m=>{let rows=a.filter(x=>x.meal===m);return `<div class="card"><div class="mealhead"><h2>${m}</h2><span class="sub">${Math.round(sum(rows,'cal'))} cal</span></div>${rows.length?rows.map(x=>`<div class="food"><div><div class="foodname">${esc(x.name)}</div><div class="foodmeta">${x.cal} cal · P ${x.p}g · C ${x.c}g · F ${x.f}g</div></div><div class="foodactions"><button class="tiny" data-fav="${x.id}">☆</button><button class="tiny" data-del="${x.id}">Delete</button></div></div>`).join(''):'<div class="empty">No foods logged.</div>'}</div>`}).join('');
+ document.getElementById('favorites').innerHTML=state.favorites.length?state.favorites.map((x,i)=>`<div class="food"><div><div class="foodname">${esc(x.name)}</div><div class="foodmeta">${x.cal} cal · P ${x.p}g · C ${x.c}g · F ${x.f}g</div></div><div class="foodactions"><button class="tiny" data-usefav="${i}">＋ Add</button><button class="tiny" data-unfav="${i}">×</button></div></div>`).join(''):'<div class="empty">Save foods you eat often to add them again quickly.</div>';
+ document.getElementById('historyList').innerHTML=Object.keys(state.days).sort().reverse().slice(0,30).map(k=>{let d=state.days[k];return `<div class="food"><div><b>${k}</b><div class="foodmeta">${d.length} foods · ${Math.round(sum(d,'cal'))} cal · P ${sum(d,'p').toFixed(1)}g · C ${sum(d,'c').toFixed(1)}g · F ${sum(d,'f').toFixed(1)}g</div></div><button class="tiny" data-view="${k}">View</button></div>`}).join('')||'<div class="empty">Your logged days will appear here.</div>';
+}
+document.getElementById('foodForm').addEventListener('submit',e=>{e.preventDefault();let x={id:Date.now()+Math.random(),name:document.getElementById('foodName').value.trim(),meal:document.getElementById('meal').value,cal:n(document.getElementById('cal').value),p:n(document.getElementById('protein').value),c:n(document.getElementById('carbs').value),f:n(document.getElementById('fat').value)};if(!x.name||Object.values({cal:x.cal,p:x.p,c:x.c,f:x.f}).some(v=>v<0||!Number.isFinite(v))){alert('Please check the food details.');return}let a=todayFoods();a.push(x);setTodayFoods(a);e.target.reset()});
+document.getElementById('mealLists').addEventListener('click',e=>{let d=e.target.dataset,a=todayFoods();if(d.del){setTodayFoods(a.filter(x=>String(x.id)!==d.del))}if(d.fav){let x=a.find(x=>String(x.id)===d.fav);if(x&&!state.favorites.some(y=>y.name===x.name&&y.cal===x.cal)){let {id,meal,...f}=x;state.favorites.push(f);save();render()}}});
+document.getElementById('favorites').addEventListener('click',e=>{let d=e.target.dataset;if(d.usefav!==undefined){let x={...state.favorites[Number(d.usefav)],id:Date.now()+Math.random(),meal:document.getElementById('meal').value};let a=todayFoods();a.push(x);setTodayFoods(a)}if(d.unfav!==undefined){state.favorites.splice(Number(d.unfav),1);save();render()}});
+document.getElementById('historyList').addEventListener('click',e=>{let k=e.target.dataset.view;if(k){let d=state.days[k]||[];alert(`${k}\\n${d.map(x=>`${x.name}: ${x.cal} cal, P${x.p} C${x.c} F${x.f}`).join('\\n')||'No entries'}`)}});
+document.querySelectorAll('[data-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab))}));
+function fillGoals(){gcal.value=state.goals.cal;gp.value=state.goals.p;gc.value=state.goals.c;gf.value=state.goals.f}
+document.getElementById('saveGoals').addEventListener('click',()=>{let v={cal:n(gcal.value),p:n(gp.value),c:n(gc.value),f:n(gf.value)};if(v.cal<1||v.cal>10000||v.p<0||v.c<0||v.f<0||v.p>1000||v.c>1000||v.f>1000){alert('Enter valid goal values.');return}state.goals=v;save();render();alert('Goals saved.')});
+document.getElementById('exportBtn').addEventListener('click',()=>{let blob=new Blob([JSON.stringify(state,null,2)],{type:'application/json'}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='macrotrack-backup.json';a.click();URL.revokeObjectURL(url)});
+document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+document.getElementById('importFile').addEventListener('change',async e=>{let f=e.target.files[0];if(!f)return;try{let x=JSON.parse(await f.text());if(!x.goals||!x.days||!Array.isArray(x.favorites))throw Error();state=x;save();fillGoals();render();alert('Backup imported.')}catch(err){alert('That backup file could not be read.')}e.target.value=''});
+document.getElementById('today').textContent=new Date().toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric',year:'numeric'});
+fillGoals();render();
+if('serviceWorker' in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+</script>
+</body></html>

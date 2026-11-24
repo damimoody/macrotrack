@@ -1,0 +1,22 @@
+{
+  "name": "MacroTrack - Food & Macro Tracker",
+  "short_name": "MacroTrack",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f3f6f2",
+  "theme_color": "#172b25",
+  "description": "A simple personal food and macro tracker.",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
