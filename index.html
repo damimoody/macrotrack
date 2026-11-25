@@ -33,7 +33,14 @@ h2{font-size:18px;margin:0 0 12px}.row{display:grid;grid-template-columns:1fr 1f
 </div>
 <div class="grid" id="macroTiles"></div>
 <div class="card">
-<h2>Add food</h2>
+<h2>Find food nutrition</h2>
+<p class="sub">Search everyday foods and packaged products. Check the serving and label before adding.</p>
+<div class="field"><label for="foodSearch">Search food</label><input id="foodSearch" placeholder="e.g. banana, oats, or a packaged brand"></div>
+<button class="secondary" type="button" id="searchBtn" style="width:100%">Search food database</button>
+<div id="searchStatus" class="sub" style="margin:10px 0"></div><div id="searchResults"></div>
+<div class="notice">Nutrition entries are estimates and database records can be incomplete. For packaged foods, compare with the package label.</div>
+<hr style="border:0;border-top:1px solid var(--line);margin:18px 0">
+<h2>Add food manually</h2>
 <form id="foodForm">
 <div class="field"><label for="foodName">Food name</label><input id="foodName" maxlength="90" placeholder="e.g. Grilled chicken breast" required></div>
 <div class="field"><label for="meal">Meal</label><select id="meal"><option>Breakfast</option><option>Lunch</option><option>Dinner</option><option>Snacks</option></select></div>
@@ -57,6 +64,23 @@ h2{font-size:18px;margin:0 0 12px}.row{display:grid;grid-template-columns:1fr 1f
 <div class="row" style="margin-top:12px"><button class="secondary" id="exportBtn">Export backup</button><button class="secondary" id="importBtn">Import backup</button></div><input class="hidden" id="importFile" type="file" accept="application/json">
 </main>
 <script>
+
+const $=id=>document.getElementById(id);
+const localFoods=[
+ ['Banana, raw',89,1.1,22.8,.3],['Egg, whole, cooked',155,12.6,1.1,10.6],['Chicken breast, cooked, skinless',165,31,0,3.6],['Oats, dry',379,13.2,67.7,6.5],['White rice, cooked',130,2.7,28.2,.3],['Brown rice, cooked',123,2.7,25.6,1],['Apple, raw with skin',52,.3,13.8,.2],['Broccoli, raw',34,2.8,6.6,.4],['Salmon, cooked',206,22,0,12.4],['Black beans, cooked',132,8.9,23.7,.5],['Peanut butter',588,25,20,50],['Potato, baked',93,2.5,21.2,.1],['Sweet potato, baked',90,2,20.7,.2],['Whole wheat bread',247,13,41,4.2],['Avocado, raw',160,2,8.5,14.7]
+].map((x,i)=>({id:'local'+i,name:x[0],cal:x[1],p:x[2],c:x[3],f:x[4],source:'Common-food estimate'}));
+function foodCard(x){return `<div class="food"><div style="min-width:0;flex:1"><div class="foodname">${esc(x.name)}</div><div class="foodmeta">Per 100 g · ${Math.round(x.cal)} cal · P ${x.p.toFixed(1)}g · C ${x.c.toFixed(1)}g · F ${x.f.toFixed(1)}g<br>${esc(x.source||'Food database')}</div><div class="row" style="margin-top:7px"><div><label>Serving (grams)</label><input type="number" min="1" max="3000" value="100" step="1" id="grams-${esc(x.id)}"></div><div style="display:flex;align-items:end"><button class="tiny" type="button" data-selectfood="${esc(x.id)}">Use this food</button></div></div></div></div>`}
+let foundFoods=[];
+async function searchFoods(){const q=$('foodSearch').value.trim();if(!q){$('searchStatus').textContent='Enter a food to search.';return} $('searchStatus').textContent='Searching food databases…';$('searchResults').innerHTML='';foundFoods=[];
+ // Always include matching common foods so basic searches work even if a service is unavailable.
+ const local=localFoods.filter(x=>x.name.toLowerCase().includes(q.toLowerCase()));
+ try{const url='https://world.openfoodfacts.org/cgi/search.pl?search_terms='+encodeURIComponent(q)+'&search_simple=1&action=process&json=1&page_size=12&fields=code,product_name,brands,nutriments,serving_size';const res=await fetch(url);if(!res.ok)throw Error('Food database unavailable');const data=await res.json();const products=(data.products||[]).filter(x=>x.product_name&&x.nutriments&&x.nutriments['energy-kcal_100g']!==undefined).map((x,i)=>({id:'off'+i+'-'+String(x.code||i),name:[x.product_name,x.brands].filter(Boolean).join(' — '),cal:Number(x.nutriments['energy-kcal_100g'])||0,p:Number(x.nutriments.proteins_100g)||0,c:Number(x.nutriments.carbohydrates_100g)||0,f:Number(x.nutriments.fat_100g)||0,source:'Open Food Facts'}));foundFoods=[...local,...products];}catch(e){foundFoods=local;$('searchStatus').textContent='Packaged-food search is temporarily unavailable. Showing matching common foods instead.'}
+ if(!foundFoods.length){$('searchStatus').textContent='No matches found. Try a simpler search or enter the nutrition manually.';return}
+ $('searchStatus').textContent=`Found ${foundFoods.length} result(s). Values shown per 100 grams.`;$('searchResults').innerHTML=foundFoods.map(foodCard).join('');
+}
+$('searchBtn').addEventListener('click',searchFoods);$('foodSearch').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();searchFoods()}});
+$('searchResults').addEventListener('click',e=>{const id=e.target.dataset.selectfood;if(!id)return;const x=foundFoods.find(y=>y.id===id);if(!x)return;const grams=Math.max(1,Number($('grams-'+id).value)||100),factor=grams/100;$('foodName').value=x.name;$('cal').value=Math.round(x.cal*factor);$('protein').value=(x.p*factor).toFixed(1);$('carbs').value=(x.c*factor).toFixed(1);$('fat').value=(x.f*factor).toFixed(1);$('searchStatus').textContent=`Filled the manual entry for ${grams} g. Choose a meal below, then tap Add to food diary.`;document.getElementById('foodName').scrollIntoView({behavior:'smooth',block:'center'});});
+
 const KEY='macrotrack-data-v1';
 const defaults={goals:{cal:2000,p:150,c:200,f:67},days:{},favorites:[]};
 let state=load();
